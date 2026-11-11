@@ -2,6 +2,10 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const { createRequire } = require('node:module');
+// Reuse the SemVer dependency declared by electron-builder's build library.
+const builderRequire = createRequire(require.resolve('electron-builder/package.json'));
+const semver = createRequire(builderRequire.resolve('app-builder-lib/package.json'))('semver');
 
 const ROOT = path.resolve(__dirname, '..');
 const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
@@ -21,15 +25,52 @@ function atLeast(value, minimum) {
   return true;
 }
 
+function assertBuilderSecurityBaseline(range, version) {
+  const minimum = '26.15.3';
+  assert.ok(typeof range === 'string' && range.trim() && semver.validRange(range),
+    'electron-builder must declare a valid version range');
+  assert.ok(semver.subset(range, `>=${minimum}`, { includePrerelease: true }),
+    `electron-builder range ${range} permits versions below ${minimum}`);
+  assert.ok(typeof version === 'string' && semver.valid(version) && semver.gte(version, minimum),
+    `electron-builder ${version} is below ${minimum} or invalid`);
+  assert.ok(semver.satisfies(version, range),
+    `electron-builder ${version} does not satisfy ${range}`);
+}
+
+test('electron-builder baseline allows upgrades and rejects unsafe ranges or lockfiles', () => {
+  for (const [range, version] of [
+    ['^26.15.3', '26.15.3'], ['^26.18.0', '26.18.0'],
+    ['~26.18.0', '26.18.1'], ['26.18.0', '26.18.0'],
+    ['>=26.15.3 <27', '26.18.0'],
+  ]) {
+    assert.doesNotThrow(() => assertBuilderSecurityBaseline(range, version), `${range}: ${version}`);
+  }
+  for (const [range, version, reason] of [
+    ['^26.15.2', '26.18.0', /permits versions below/],
+    ['<26.15.3', '26.15.2', /permits versions below/],
+    ['^26.18.0 || ^25.0.0', '26.18.0', /permits versions below/],
+    ['*', '26.18.0', /permits versions below/],
+    ['>=26.15.3-rc.1', '26.18.0', /permits versions below/],
+    ['^26.15.3', '26.15.2', /is below/],
+    ['^26.15.3', '26.15.3-rc.1', /is below/],
+    ['^26.18.0', '26.15.3', /does not satisfy/],
+    ['^26.18.0', undefined, /invalid/],
+    ['', '26.18.0', /valid version range/],
+    ['latest', '26.18.0', /valid version range/],
+    [undefined, '26.18.0', /valid version range/],
+  ]) {
+    assert.throws(() => assertBuilderSecurityBaseline(range, version), reason, `${range}: ${version}`);
+  }
+});
+
 test('packaged desktop dependencies keep the audited security baseline', () => {
   const electron = lock.packages['node_modules/electron']?.version;
   const builder = lock.packages['node_modules/electron-builder']?.version;
   const pi = lock.packages['node_modules/@earendil-works/pi-coding-agent']?.version;
 
   assert.ok(atLeast(electron, '44.9.1'), `Electron ${electron} is below 44.9.1`);
-  assert.ok(atLeast(builder, '26.15.3'), `electron-builder ${builder} is below 26.15.3`);
+  assertBuilderSecurityBaseline(pkg.devDependencies['electron-builder'], builder);
   assert.ok(atLeast(pkg.devDependencies.electron, '44.9.1'));
-  assert.match(pkg.devDependencies['electron-builder'], /26\.15\.3/);
   // SDK 1.4 has no internal shrinkwrap, so audited dependency overrides can take effect.
   assert.equal(pkg.dependencies['@earendil-works/pi-coding-agent'], '1.4.0');
   assert.equal(pi, '1.4.0');
