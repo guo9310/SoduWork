@@ -35,7 +35,7 @@ for (const id of ['self-hosted']) test(`${id} renderer uses bundled Hub from its
   assert.equal(invalid.requests.length, 0);
 });
 for (const [name, seed, expected, bridge] of [
-  ['fresh', {}, 'http://127.0.0.1:18989'],
+  ['fresh', {}, 'https://service.soduwork.ai'],
   ['local-code fresh', {}, 'http://127.0.0.1:18989', { runtimeForm: () => 'local-code' }],
   ['production without saved URL', { soduwork_work_hub_environment_v1: 'production' }, unassigned],
   ['production with saved URL', { soduwork_work_hub_environment_v1: 'production', soduwork_work_hub_url: legacy }, legacy],
@@ -113,22 +113,22 @@ test('storage failure rolls back main-process selection and never claims a saved
   const f = fixture({}, { selectHubEnvironment: async hub => { selected.push(hub); return { ok: true }; } },
     { getItem: () => '', setItem() { throw Error('disk full'); } });
   await assert.rejects(f.api.connectHub('production', 'https://team.example.com'), /无法保存/);
-  assert.deepEqual(selected, ['https://team.example.com', 'http://127.0.0.1:18989']);
-  assert.equal(f.api.hubBase(), 'http://127.0.0.1:18989');
+  assert.deepEqual(selected, ['https://team.example.com', 'https://service.soduwork.ai']);
+  assert.equal(f.api.hubBase(), 'https://service.soduwork.ai');
 });
 
 test('invalid service URL and failed main-process selection leave the saved connection untouched', async () => {
   const f = fixture({}, { selectHubEnvironment: async () => ({ ok: false, error: 'selection rejected' }) });
   for (const value of ['https://user:secret@example.com', 'https://example.com/api', 'https://example.com?q=x', 'file:///C:/']) {
     await assert.rejects(f.api.connectHub('production', value));
-    assert.equal(f.api.hubBase(), 'http://127.0.0.1:18989');
+    assert.equal(f.api.hubBase(), 'https://service.soduwork.ai');
   }
   await assert.rejects(f.api.connectHub('production', 'https://team.example.com'), /selection rejected/);
   assert.equal(f.values.has('soduwork_work_hub_connections_v2'), false);
 });
 
 
-const production = 'http://127.0.0.1:18989';
+const production = 'https://service.soduwork.ai';
 test('runtime badge cannot override the fixed production connection', async () => {
   const f = fixture({}, { runtimeForm: () => 'local-code' }, undefined, false);
   await f.api.clientAuthPolicy();
@@ -212,7 +212,7 @@ for (const oldHub of ['http://localhost:18989', '']) test('fixed product isolate
   assert.equal(f.values.get('soduwork_work_task_ops_v1'), '[{"id":"legacy-only"}]');
   assert.ok(!JSON.stringify(f.requests).includes('old-local-key'));
   assert.ok(f.requests.every(row => row.url.startsWith(production + '/')));
-  assert.match(f.api.taskStorageKey('ops'), /http%3A%2F%2F127\.0\.0\.1%3A18989/);
+  assert.ok(f.api.taskStorageKey('ops').includes(encodeURIComponent(production)));
 });
 
 test('only an explicit main-process internal loopback connection overrides the product endpoint', async () => {

@@ -3,7 +3,7 @@
  * Hub is authoritative for tasks. store.js queues per-task put/patch/delete
  * operations and replays them on reconnect instead of overwriting the task table.
  * Exposes task operations, configuration sync, registerClient, and connectWS.
- * The default Hub is http://127.0.0.1:18989; the login gate can change it through
+ * The default Hub is https://service.soduwork.ai; the login gate can change it through
  * the main-process hub-endpoint policy. Identities and pending operations remain
  * isolated by service. X-Soduwork-Device identifies the installation using Electron
  * secure storage; User.id is only a legacy first-migration hint.
@@ -52,7 +52,7 @@
   var LS_CFG = 'soduwork_work_cfg_v5';
   // An unscoped legacy credential has no trustworthy destination. Quarantine it
   // rather than guessing a former deployment or sending it to a new service.
-  var DEFAULT_PRODUCTION_HUB = 'http://127.0.0.1:18989';
+  var DEFAULT_PRODUCTION_HUB = 'https://service.soduwork.ai';
   var LEGACY_PRODUCTION_HUB = 'https://unassigned-legacy-hub.invalid';
   var DEFAULT_DEVELOPMENT_HUB = 'http://127.0.0.1:18989';
   var HUB_CONNECTIONS_KEY = 'soduwork_work_hub_connections_v2';

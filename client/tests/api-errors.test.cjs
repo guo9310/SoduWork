@@ -137,22 +137,22 @@ test('任务缓存按 Hub 环境隔离，旧缓存不会冒充实时任务', asy
 test('fresh and legacy clients always use the fixed production Hub', () => {
   const fresh = load(async () => response(200, '[]'));
   assert.equal(fresh.hubConfig().environment, 'production');
-  assert.equal(fresh.hubBase(), 'http://127.0.0.1:18989');
+  assert.equal(fresh.hubBase(), 'https://service.soduwork.ai');
   const fixed = load(async () => response(200, '[]'), {
     soduwork_work_hub_environment_v1: 'development',
     soduwork_work_development_hub_url_v1: 'http://127.0.0.1:9080',
     soduwork_work_hub_url: 'http://untrusted-old-override:9999',
   });
-  assert.equal(fixed.hubBase(), 'http://127.0.0.1:18989');
+  assert.equal(fixed.hubBase(), 'https://service.soduwork.ai');
   assert.equal(fixed.hubConfig().editable, false);
 });
 
 test('saved custom addresses cannot enable product environment switching', async () => {
   const api = load(async () => response(200, '[]'), { soduwork_work_hub_url: 'http://127.0.0.1:7777/' });
-  assert.equal(api.hubBase(), 'http://127.0.0.1:18989');
+  assert.equal(api.hubBase(), 'https://service.soduwork.ai');
   assert.throws(() => api.setHubEnvironment('development', 'http://localhost:9080'));
   await assert.rejects(api.connectHub('production', 'https://other.example.com'));
-  assert.equal(api.hubBase(), 'http://127.0.0.1:18989');
+  assert.equal(api.hubBase(), 'https://service.soduwork.ai');
 });
 
 test('定时任务断网向页面交付错误，不伪装成空清单', async () => {

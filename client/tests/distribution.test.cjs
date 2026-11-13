@@ -24,7 +24,7 @@ test('public identity comes from the existing package and configured update trus
   const profile = distribution.current();
   const packageInfo = require('../package.json');
   assert.equal(profile.distributionId, 'self-hosted');
-  assert.equal(profile.hubOrigin, 'http://127.0.0.1:18989');
+  assert.equal(profile.hubOrigin, 'https://service.soduwork.ai');
   assert.equal(profile.websiteUrl, packageInfo.homepage || '');
   assert.equal(profile.appId, packageInfo.build.appId);
   assert.equal(profile.productName, packageInfo.productName);
@@ -98,8 +98,10 @@ test('an otherwise valid signed manifest is rejected when isolated public trust 
 
 for (const isPackaged of [false, true]) test(`self-hosted ${isPackaged ? 'packaged' : 'source'} clients persist an editable Hub`, t => {
   const app = appFixture(t, isPackaged);
-  assert.deepEqual(endpoint.initialize(app, {}), { hub: 'http://127.0.0.1:18989', editable: true, internalTest: false });
-  assert.equal(endpoint.prepare(app, 'https://hub.example.test').ok, true);
-  assert.equal(endpoint.initialize(app, {}).hub, 'https://hub.example.test');
+  assert.deepEqual(endpoint.initialize(app, {}), { hub: 'https://service.soduwork.ai', editable: true, internalTest: false });
+  for (const hub of ['http://127.0.0.1:18989', 'https://hub.example.test']) {
+    assert.equal(endpoint.prepare(app, hub).ok, true);
+    assert.equal(endpoint.initialize(app, {}).hub, hub);
+  }
   assert.equal(distribution.publicInfo().websiteUrl, '');
 });

@@ -117,7 +117,7 @@ test('local snapshots and cached errors cannot change offline status while a fre
 
 test('notification reconciliation revalidates company access within the shared-cache TTL, including a new renderer', async t => {
   const { create } = require('../main/client-domain-cache.cjs');
-  const identity = {hub: 'http://127.0.0.1:18989', clientId: 'desktop',
+  const identity = {hub: 'https://service.soduwork.ai', clientId: 'desktop',
     session: Buffer.from(JSON.stringify({typ: 'device', uid: 'alice', cid: 'desktop', ver: 1})).toString('base64url') + '.fixture'};
   const rows = [
     {id: 'plugin-private', kind: 'plugin_lifecycle', text: 'Former company plugin', recipientId: 'alice'},

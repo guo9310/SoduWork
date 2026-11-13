@@ -80,8 +80,8 @@
   }
 
   /*
-   * Show the collapsible endpoint editor only when the main process marks a source launch
-   * editable; omit it in installed clients and internalTest fixtures.
+   * Show the collapsible endpoint editor whenever the main process permits service
+   * selection, including installed clients; fixed test connections remain hidden.
    */
   function connectionPanelHtml() {
     var editable = false;
@@ -92,7 +92,7 @@
     if (!editable) return '';
     return '<details class="soduwork-auth-connection"><summary>服务连接 · 更改地址</summary>' +
         '<label for="soduWorkAuthHub">SoduWork 服务地址</label>' +
-        '<div class="soduwork-auth-connection-row"><input id="soduWorkAuthHub" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="http://127.0.0.1:18989">' +
+        '<div class="soduwork-auth-connection-row"><input id="soduWorkAuthHub" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://service.soduwork.ai">' +
           '<button class="soduwork-auth-connect" type="button">保存并连接</button></div>' +
         '<p>使用本机服务，或填写你部署的服务地址。各服务的账号与数据独立保留。</p>' +
       '</details>';

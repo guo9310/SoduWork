@@ -8,7 +8,8 @@ function appAt(profile, packaged = false, appData = path.dirname(profile)) {
   return { isPackaged: packaged, getPath: name => name === 'userData' ? profile : appData };
 }
 
-test('packaged and source clients default to a local Hub and allow explicit configuration', () => {
+test('packaged and source clients default to the hosted Hub and allow explicit configuration', () => {
+  assert.equal(production, 'https://service.soduwork.ai');
   for (const packaged of [false, true]) {
     const app = appAt(path.resolve('fixture-profile'), packaged);
     assert.deepEqual(endpoint.initialize(app, { SODUWORK_HUB_URL: 'http://localhost:9080' }), { hub: production, internalTest: false, editable: true });

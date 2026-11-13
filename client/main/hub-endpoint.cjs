@@ -2,11 +2,11 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const PRODUCTION_HUB = 'http://127.0.0.1:18989';
+const PRODUCTION_HUB = 'https://service.soduwork.ai';
 const connections = new WeakMap();
 
 const BAD_HUB = '后台地址应为不带路径的 http:// 或 https:// 地址';
-// Public builds default to a local Hub and persist the user's service selection.
+// Public builds default to the hosted Hub and persist the user's service selection.
 // The isolated integration harness keeps a fixed connection:
 // - an unpackaged, separately profiled integration harness may opt into its own
 //   loopback backend (SODUWORK_TEST_HUB_URL; internalTest, never editable);
