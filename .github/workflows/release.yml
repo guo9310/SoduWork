@@ -112,6 +112,15 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y clang-15 rpm libarchive-tools
+      - name: Use TCP for Apple ticket downloads on Intel macOS
+        if: matrix.shard == 'macos-x64'
+        shell: bash
+        run: |
+          # GitHub-hosted Intel runners can drop Apple's HTTP/3 connections.
+          # https://github.com/actions/runner-images/issues/14924
+          # Apply the runner workaround before both stapling and validation.
+          printf '%s\n' 'block return out quick proto udp from any to any port 443' | sudo pfctl -f -
+          sudo pfctl -E
       - name: Prepare macOS signing and notarization
         if: startsWith(matrix.shard, 'macos-')
         run: bash tools/ci/prepare-macos-signing.sh
