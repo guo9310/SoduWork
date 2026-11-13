@@ -325,9 +325,15 @@ class ReleaseTests(unittest.TestCase):
         baselines = {key: {'productName': 'SoduWork', 'version': '1.2.2', 'sha256': 'a' * 64,
                           'url': 'https://github.com/example/project/releases/download/client-v1.2.2/installer'} for key in keys}
         file = self.root / 'tools/ci/soduwork-acceptance-baselines.json'
-        release.write(file, baselines)
-        release.policy(ctx, self.root)
-        for field, value in [('version', '1.2.3'), ('url', 'https://example.test/installer'), ('path', '/local/installer')]:
+        for prefix in ['client-v', 'v']:
+            for item in baselines.values():
+                item['url'] = f'https://github.com/example/project/releases/download/{prefix}1.2.2/installer'
+            release.write(file, baselines)
+            release.policy(ctx, self.root)
+        for field, value in [('version', '1.2.3'), ('url', 'https://example.test/installer'),
+                             ('url', 'https://github.com/example/project/releases/download/v1.2.1/installer'),
+                             ('url', 'https://github.com/other/project/releases/download/v1.2.2/installer'),
+                             ('path', '/local/installer')]:
             changed = copy.deepcopy(baselines)
             changed[keys[0]][field] = value
             release.write(file, changed)

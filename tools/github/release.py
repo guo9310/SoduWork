@@ -95,7 +95,9 @@ def policy(ctx, root=ROOT):
             require(item.get("productName") == "SoduWork" and re.fullmatch(VERSION, item.get("version", "")), "Missing public upgrade baseline: " + key)
             require(tuple(map(int, item["version"].split("."))) < tuple(map(int, ctx["version"].split("."))), "Baseline must be older")
             require(re.fullmatch(r"[a-f0-9]{64}", item.get("sha256", "")), "Baseline digest required")
-            require(re.fullmatch(r"https://github\.com/" + re.escape(ctx["repository"]) + r"/releases/download/client-v[0-9.]+/[^/?#]+", item.get("url", "")), "Baseline must be a public release asset in this repository")
+            require(re.fullmatch(r"https://github\.com/" + re.escape(ctx["repository"]) +
+                                r"/releases/download/(?:client-)?v" + re.escape(item["version"]) + r"/[^/?#]+",
+                                item.get("url", "")), "Baseline must be a public release asset in this repository at its declared version")
             require(not any(k in item for k in ["path", "fallbackUrl"]), "Local/private baseline overrides are forbidden")
 
 
